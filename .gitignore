@@ -1,0 +1,16 @@
+# Symfony
+/app/vendor/
+/app/var/
+/app/.env.local
+/app/.env.local.php
+/app/.env.*.local
+/app/public/bundles/
+
+# Symfony cache/logs (redundant with var/ but explicit)
+/app/var/cache/
+/app/var/log/
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
