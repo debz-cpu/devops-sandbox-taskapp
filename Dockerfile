@@ -36,13 +36,14 @@ RUN docker-php-ext-install \
     mbstring \
     opcache
 
-# 3. Configure PHP-FPM to run its worker pool as our non-root user
+# 3. Configure PHP-FPM: non-root user, and stop stripping env vars
 RUN sed -i \
     -e "s/^user = .*/user = appuser/" \
     -e "s/^group = .*/group = appuser/" \
+    -e "s/^;clear_env = no/clear_env = no/" \
     /usr/local/etc/php-fpm.d/www.conf
 
-# 4. Copy Composer itself into the final image (kept, so `composer require` still works locally)
+# 4. Copy Composer itself into the final image
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # 5. Set the working directory
@@ -55,7 +56,7 @@ RUN groupadd -g 1000 appuser && \
 # 7. Copy application code, owned by appuser (overridden locally by the bind mount)
 COPY --chown=appuser:appuser app/ .
 
-# ---------- Stage 4: test image (used by CI — includes dev tools, default OPcache) ----------
+# ---------- Stage 4: test image (used by CI - includes dev tools, default OPcache) ----------
 FROM base AS test
 COPY --from=vendor-dev --chown=appuser:appuser /app/vendor ./vendor
 USER appuser
@@ -63,7 +64,7 @@ USER appuser
 # ---------- Stage 5: production image (default, lean, OPcache tuned) ----------
 FROM base AS app
 
-# Production OPcache tuning — NOT applied to test/dev, since
+# Production OPcache tuning - NOT applied to test/dev, since
 # validate_timestamps=0 would hide local code changes made via bind mount
 RUN { \
     echo 'opcache.memory_consumption=128'; \
