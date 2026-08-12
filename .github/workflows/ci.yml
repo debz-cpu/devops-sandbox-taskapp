@@ -13,26 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: docker build -t devops-sandbox-taskapp:ci .
-
-      - name: Install Composer dependencies
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}/app:/var/www/html \
-            devops-sandbox-taskapp:ci \
-            composer install --no-interaction --prefer-dist
+      - name: Build test image
+        run: docker build --target test -t devops-sandbox-taskapp:ci .
 
       - name: Run PHPUnit tests
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}/app:/var/www/html \
-            devops-sandbox-taskapp:ci \
-            php bin/phpunit
+        run: docker run --rm devops-sandbox-taskapp:ci php bin/phpunit
 
       - name: Check code style (PHP-CS-Fixer)
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}/app:/var/www/html \
-            devops-sandbox-taskapp:ci \
-            vendor/bin/php-cs-fixer fix --dry-run --diff
+        run: docker run --rm devops-sandbox-taskapp:ci vendor/bin/php-cs-fixer fix --dry-run --diff
