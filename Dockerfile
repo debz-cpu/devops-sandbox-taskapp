@@ -17,8 +17,21 @@ RUN docker-php-ext-install \
     intl \
     mbstring
 
-# 3. Copy Composer from the official Composer image
+# 3. Configure PHP-FPM to run its worker pool as our non-root user
+RUN sed -i \
+    -e "s/^user = .*/user = appuser/" \
+    -e "s/^group = .*/group = appuser/" \
+    /usr/local/etc/php-fpm.d/www.conf
+
+# 4. Copy Composer from the official Composer image
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# 4. Set the working directory
+# 5. Set the working directory
 WORKDIR /var/www/html
+
+# 6. Create a non-root user to run the application
+RUN groupadd -g 1000 appuser && \
+    useradd -u 1000 -g appuser -m appuser && \
+    chown -R appuser:appuser /var/www/html
+
+USER appuser
